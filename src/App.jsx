@@ -1,27 +1,60 @@
 import React, { useState, useEffect } from 'react'
 import classes from './app.module.css'
+import beepSfx from './sfx/beep.wav'
+import boopSfx from './sfx/boop.wav'
+import doneSfx from './sfx/done.wav'
 
 function App() {
   const [prepare, setPrepare] = useState(0)
-  const [work, setWork] = useState(30)
-  const [rest, setRest] = useState(20)
+  const [work, setWork] = useState(5)
+  const [rest, setRest] = useState(5)
   const [cycles, setCycles] = useState(1)
   const [rounds, setRounds] = useState(1)
   const [playing, setPlaying] = useState(false)
-  const [duration, setDuration] = useState(0)
+  const [duration, setDuration] = useState(null)
 
   const resetAll = () => {
     setPrepare(0)
-    setWork(0)
-    setRest(0)
+    setWork(30)
+    setRest(20)
     setCycles(1)
     setRounds(1)
   }
 
+  const beep = new Audio(beepSfx)
+  const boop = new Audio(boopSfx)
+  const done = new Audio(doneSfx)
+
   // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
-    // Update the document title using the browser API
-    setLength();
+
+    if(!playing) {
+
+      setLength();
+
+    } 
+    
+    if (playing & duration >= 1) {
+
+      const timer=setTimeout(() => {
+        setDuration(duration => duration - 1)
+        
+        if (duration > 1) {
+          boop.play()
+        }
+
+      }, 1000);
+
+      // Clear timeout if the component is unmounted
+      return () => clearTimeout(timer);
+
+    }
+
+    if (duration === 0) {
+      done.play()
+      setPlaying(false)
+    }
+
   });
 
   const setLength = () => {
@@ -35,10 +68,6 @@ function App() {
     var seconds = props.seconds % 60
 
     return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
-  }
-
-  const startStop = () => {
-    setPlaying(!playing)
   }
 
   return (
@@ -103,7 +132,7 @@ function App() {
             </button>
             <button
               className={classes.button}
-              onClick={startStop}
+              onClick={() => setPlaying(play => play = !play)}
             >
               {playing ? "⏸" : "▶️"}
             </button>
